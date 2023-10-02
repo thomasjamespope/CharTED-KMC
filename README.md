@@ -165,7 +165,7 @@ This disorder in generated once per site and applied to all levels equally.
 
 The electric field, controlled with the ELECTRIC_FIELD flag, is applied step-wise in the $y$-direction by,
 
-$\text{E}_{{\bf{i}}_y}^{\text{field}}=\left(N_y - {\bf{i}}_y\right)\times\left(\text{\texttt{ELECTRIC\_{}FIELD}}\right)\times\left(\text{\texttt{LATTICE}}\right)$
+$\text{E}_{{\bf{i}}_y}^{\text{field}}=\left(N_y - {\bf{i}}_y\right)\times\left(\text{\texttt{ELECTRIC_FIELD}}\right)\times\left(\text{\texttt{LATTICE}}\right)$
 
 **Charge Distribution**
 
