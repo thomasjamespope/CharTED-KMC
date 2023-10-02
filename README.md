@@ -38,25 +38,32 @@ CharTED-KMC is a Kinetic Monte-Carlo code used to model charge transport in orga
 
 The quickest way to get started with CharTED-KMC is to clone this repository:
 
-<!---
 ```
 git clone https://github.com/thomasjamespope/CharTED-KMC/tree/main 
 ```
---->
 
 This contains all the source files and an example input file - as well as the offline manual.
 
 CharTED-KMC is entirely stand-alone and comes with its own Makefile. The compile, simply go to the code directory and type:
 
-<!---
 ```
 make all
 ```
---->
 
 Now you're good to go!
 
 ## GETTING STARTING 
+To run CharTED-KMC, type:
+
+```
+mpirun -np 4 CharTED-KMC.x input.file > output.o 2> error.o 
+```
+
+input.file contains the system parameters and is supplied by the user. output.o and error.o contain, respectively, the standard output and the sdandard error output for the calculation. Additional output files are also written. The MPI envirment is used to generate multiple independant simulations (in this case, 4) using the same input parameters. At the end of the calculation, statistical analysis is performed of the group of simulations generate physical predictions (like mobility, excitation rate, etc...). It is important to run as many simulations as possible or at the very least 2.
+
+---
+
+
 | Input parameter | Options | Default | Description |
 | --- | --- | --- | --- |
 | `DEBUG` | *1 boolean* | .false. | Sets the seed for the random number generator to zero for reproducable calculations |
