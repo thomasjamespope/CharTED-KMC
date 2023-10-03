@@ -5,7 +5,7 @@
 <tr><td align="center" width="10000">
     
 # <strong> CharTED-KMC </strong>
-<img src = "./resources/logo2.png" width = "1080">
+<img src = "./resources/logo.png" width = "1080">
 
 
 <p>
