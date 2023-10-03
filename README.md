@@ -3,7 +3,8 @@
 
 <table align="center">
 <tr><td align="center" width="10000">
-
+<img src = "./resources/logo2.png" width = "380">
+    
 # <strong> CharTED-KMC </strong>
 
 <p>
