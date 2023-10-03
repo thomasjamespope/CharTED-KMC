@@ -3,9 +3,10 @@
 
 <table align="center">
 <tr><td align="center" width="10000">
-<img src = "./resources/logo2.png" width = "380">
     
 # <strong> CharTED-KMC </strong>
+<img src = "./resources/logo2.png" width = "1080">
+
 
 <p>
     <a href="https://orcid.org/0000-0001-7552-9812">Dr. Thomas Pope </a>
