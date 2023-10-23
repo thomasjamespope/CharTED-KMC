@@ -107,19 +107,17 @@ input.file contains the system parameters and is supplied by the user. output.o 
 
 **General KMC**
 
-Holes and/or electrons are distributed onto a grid of points, each with an associated site energy. An electric field is applied across the grid and the system evoles through a series of hopping events, which at chosen at each time step. In order to choose an event, all possible options and associated rates are calculated. The rates, $k_{i}$ are used to generate a normalized cumulative sum,
+Holes and/or electrons are distributed onto a grid of points, each with an associated site energy. An electric field is applied across the grid and the system evolves through a series of hopping events, chosen at each time step. To choose an event, all possible options and associated rates are calculated. The rates, $k_{i}$ are used to generate a normalized cumulative sum,
 
-$\tilde{s}_j=\sum_{i}^{j}k_i, \quad s_j=\frac{\tilde{s}_j}{\tilde{s}_N},$
+$s_{i}=s_{i-1}+k_{i}, \quad s_{1}=k_{1}$
 
-where $N$ is the number of possible hopping events.
+To select an event, a random number uniformly distributed between zero and $s_{N}$, $\eta$, is chosen, where $N$ is the number of possible hopping events. The event number, $j$, is given when the inequality is satisfied,
 
-To select an event, a random number uniformly distributed between zero and one, $\eta$, is chosen. The event number, $j$, is given when the inequality is satisfied,
-
-$s_{j-1} < \eta < s_j.$
+$s_{j-1} < \eta < s_{j}.$
 
 Once an event is chosen, the system is updated accordingly and the system time is advanced by selecting another random number uniformly distributed between zero and one, $\zeta$, and calculating the time step,
 
-$\Delta t=-\frac{\ln{\zeta}}{\tilde{s}_N}.$
+$\Delta t=-\frac{\ln{\zeta}}{s_N}.$
 
 This procedure is repeated until the number of requested steps is reached. 
 
