@@ -261,6 +261,7 @@ This project is licensed under the GPL-3.0 License - see the LICENSE.md file for
 ## PUBLICATIONS
 
 [T. Pope](https://orcid.org/0000-0001-7552-9812), [Y. Giret](https://orcid.org/0000-0002-8409-6702), M. Fsadni, [P. Docampo](https://orcid.org/0000-0001-6164-4748), [C. Groves](https://orcid.org/0000-0003-2402-1618), & [TJ. Penfold](https://orcid.org/0000-0003-4490-5672) (2023). *[Modelling the effect of dipole ordering on charge-carrier mobility in organic semiconductors](https://doi.org/10.1016/j.orgel.2023.106760)*, *Organic Electronics*, **115**, 106760.
+
 [T. Pope](https://orcid.org/0000-0001-7552-9812), & [TJ. Penfold](https://orcid.org/0000-0003-4490-5672) (2023). *[Factors promoting hot-exciton formation during charge recombination in organic thin films](https://doi.org/10.1103/PhysRevApplied.20.044046)*, *Physical Review Applied*, **20**, 044046.
 
 
