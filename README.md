@@ -147,7 +147,7 @@ This disorder is generated separately for each level on the site.
 
 $E_i^{cor}=-\frac{1}{\epsilon_r} \sum_{j\neq i}\frac{d_j\cdot R_{ij}}{|R_{ij}|^3}$
 
-where $R_{ij}$ is the spacial vector between site $i$ and site $j$. For efficiency, only neighbouring sites are considered. The number of neighbouring layers is controlled with the `CORRELATED_NEIGHBORS` flag, which should be viewed as a convergence parameter. 
+where $R_{ij}$ is the spacial vector between site $i$ and site $j$ and $\epsilon_r$ is the relative permittivity of the medium (controlled by `PERMITTIVITY`). For efficiency, only neighbouring sites are considered. The number of neighbouring layers is controlled with the `CORRELATED_NEIGHBORS` flag, which should be viewed as a convergence parameter. 
 
 The dipole vectors on each site are assumed to have the same magnitude and are arranged in one of two ways depending on user input. This choice is controlled by the `CORRELATED_TYPE` flag, which can either be set to `RANDOM`, `ORDERED` or `MIXED`. In all cases, the magnitude of the dipole moment is given by the `DIPOLE_MOMENT` flag. 
 
@@ -188,39 +188,30 @@ where T is the temperature (controlled by the `TEMPERATURE` flag), $\gamma$ is t
 
 Regardless of the sign of the energy change, the Marcus rate is given,
 
-$k_{\bf{ij}}=\omega_{0}e^{-2\gamma\left|R_{ij}\right|}\times
+$k_{ij}=\omega_{0}e^{-2\gamma\left|R_{ij}\right|}\times
  e^{-\left(\lambda+\Delta E\right)^2/4\lambda k_BT},$
 
 where $\lambda$ is the reorganization energy (controlled by the `REORGANIZATION` flag).
 
-**Electric Field**
+**Change in Energy Due to an Event**
 
-The electric field, controlled with the `ELECTRIC_FIELD` flag, is applied step-wise in the $y$-direction by,
+The change in energy due to an event depends on the event and on the sites involved. If the hop involves movement in the direction of the applied electric field (controlled by the `ELECTRIC_FIELD` flag), then the change in field is added to the energy change. The energy change also incorporates the difference between the initialized site energies,
 
-$E_i^{fld}=\left(N_y - {\bf{i}}_y\right)\times\left(\text{\texttt{ELECTRIC\_FIELD}}\right)\times\left(\text{\texttt{LATTICE}}\right)$
+$\Delta E_{ij} = E_j - E_i + \Delta E^{fld} ...$
 
-**Charge Transport**
- Charge transport occurs when the destination site for a hopping event involving either an electron or a hole in unoccupied. In this case, the change in energy for the system is given by,
+Additional change depends on the event type:
 
-$\Delta E = E^{\text{site}}_{\bf{i}} - E^{\text{site}}_{\bf{j}} + \Delta E_{ij}^{\text{coulomb}},$
+-- *Charge transport* occurs when the destination site for a hopping event involving either an electron or a hole in unoccupied. In this case, the change in energy for the system is given by,
 
-where $\Delta E_{ij}^{\text{coulomb}}$ is the change in the coulomb energy due to the hopping event. This is calculated using the augmented cut-off radius method. Here, a box of a user-defined number of neighbouring layers (controlled by the COULOMB_NEIGHBORS flag) is drawn around the origin and the destination sites. A third box is defined to encompass both and all sites within the third box are considered in the calculation of the coulomb energy for the origin and destination site. If another charge particle is found within the third box, coulomb energy is given by,
+$\Delta E_{ij} = E_j - E_i + \Delta E^{fld} + \frac{1}{\epsilon_r}\left(\sum_{k\neq j}\frac{1}{R_{jk}} - \sum_{k\neq i}\frac{1}{R_{ik}}\right),$
 
-$E_{\bf{i}}^{\text{coulomb}}=\frac{e^2}{4\pi\epsilon_0\epsilon_r}\cdot\frac{1}{R_{ij}},$
-
-where $\epsilon_r$ is the relative permittivity of the medium (controlled by PERMITTIVITY) and $R_{ij}$ is the distance between sites $i$ and $j$. The difference is trivially given,
-
-$\Delta E_{ij}^{\text{coulomb}}=E_{\bf{i}}^{\text{coulomb}}-E_{\bf{j}}^{\text{coulomb}}$
-
-**Exciton Creation**
-
- If it happens that both an electron and a hole find themselves on the same site after a hopping event, they combine to create a singlet or a triplet (where the choice of which is random, and will select triplets three times more often on average). If extra HOMOs and/or LUMOs have been included, the nature of the singlet/triplet will be determined by the levels of the electron and hole. 
+-- *Exciton Creation* occurs if it happens that both an electron and a hole find themselves on the same site after a hopping event, where they combine to create an exciton. If extra HOMOs and/or LUMOs have been included, the nature of the exciton will be determined by the levels of the electron and hole. 
 
 **Outputs**
 
 CharTED-KMC has a variety of output files, which include the run-specific data for each simulation, but the more reliable metrics are usually those averaged over several runs. All averages and output analysis is printed to the standard output, which in most cases will include all the best output data. 
 
-*The carrier flux*, $\Phi$, is defined as the difference of the cumulative count of \emph{upfield} and \emph{downfield} hopping events. This is calculated on a shifted grid, ${\bf{i}}^+$. Here, ${\bf{i}}^+$ consists of grid points shifted for their positions in ${\bf{i}}$ in the direction of the applied electric field by $L/2$, where $L$ is the lattice parameter.
+*The carrier flux*, $\Phi$, is defined as the difference of the cumulative count of \emph{upfield} and \emph{downfield} hopping events.
 
 *The mobility* is given by,
 
@@ -228,13 +219,7 @@ $\mu_h=\frac{1}{E_{\text{field}}}\cdot\frac{1}{N_{\text{charge}}}\cdot\frac{\Phi
 
 where $N_{\text{charge}}$ is the number of charged particles in the system.
 
-Mobility is calculated in three different ways. The first takes the carrier flux as calculated across the entire run of the simulation. However, since the initial configuration of the charge particles does not include consideration of the coulomb potential, it often leads to unphysical mobilities. The second method considers the carrier flux of the most recent points (the number of points is determined by the N_EQUILIBRATION). However, this is much more susceptible to noise and should be treated with care. The final method is printed at the end of the standard output file. Here, the mobility is calculated with both methods, with the latter approach including increasing amounts of the recent points (from the final 10\% of points to the final 90\%), across all runs of the simulation. This final metric is the most accurate mobility and should be used in preference to the former two methods.  
-
-*The current* is given by,
-
-$\text{J}=\frac{1}{Nx}\cdot\frac{1}{Ny}\cdot\frac{1}{Nz}\cdot\frac{1}{L^2}\cdot\frac{\Phi}{t_{\text{tot}}}.$
-
-At the moment, this is the only way we calculate current. 
+*Mobility* is calculated in three different ways. The first takes the carrier flux as calculated across the entire run of the simulation. However, since the initial configuration of the charge particles does not include consideration of the coulomb potential, it often leads to unphysical mobilities. The second method considers the carrier flux of the most recent points (the number of points is determined by the `N_EQUILIBRATION`). However, this is much more susceptible to noise and should be treated with care. The final method is printed at the end of the standard output file. Here, the mobility is calculated with both methods, with the latter approach including increasing amounts of the recent points (from the final 10\% of points to the final 90\%), across all runs of the simulation. This final metric is the most accurate mobility and should be used in preference to the former two methods.  
 
 *The exciton population* is recorded across all runs of the simulation and a summary is given at the end of the standard output. 
 
