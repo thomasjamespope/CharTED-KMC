@@ -127,9 +127,9 @@ Firstly, we specify a grid - which is a 3-dimensional array of evenly spaced poi
 
 CharTED-KMC supports several energy levels per site, depending on whether holes, electrons or both a being considered (declared with the `CALC_TYPE` flag) and whether additional higher-lying levels are being considered (declared with the `HOMO+*n*_ENERGY` and `LUMO+*n*_ENERGY` flags).  Each grid point is given the relevant HOMO and/or LUMO energies, which can be set using the `HOMO_ENERGY` and `LUMO_ENERGY` flags respectively. 
 
-Additionally, uncorrelated disorder, correlated disorder and an electric field are added to the site,
+Additionally, uncorrelated and correlated disorder are added to the site,
 
-$E_i=E_{i}^{lev}+E_i^{unc}+E_i^{cor}+E_i^{fld}$
+$E_i=E_{i}^{lev}+E_i^{unc}+E_i^{cor}$
 
 **Disorder**
 
@@ -143,7 +143,7 @@ Here the Ziggurat method for generating random variables is implemented as descr
 
 This disorder is generated separately for each level on the site.
 
-*Correlated Disorder* at grid point $i$ corresponds to the electrostatic energy resulting from the interaction of its permanent dipole, $\bf{d}_i$ with the permanent dipoles at the other grid points. The resulting energy is given by,
+*Correlated Disorder* at grid point $i$ corresponds to the electrostatic energy resulting from the interaction of its permanent dipole, $d_i$ with the permanent dipoles at the other grid points. The resulting energy is given by,
 
 $E_i^{cor}=-\frac{1}{\epsilon_r} \sum_{j\neq i}\frac{d_j\cdot R_{ij}}{|R_{ij}|^3}$
 
@@ -155,57 +155,49 @@ If `RANDOM` is chosen, unit vectors are distributed randomly on each site. If `O
 
 This disorder is generated once per site and applied to all levels equally. 
 
-**Electric Field**
-
-The electric field, controlled with the ELECTRIC_FIELD flag, is applied step-wise in the $y$-direction by,
-
-$\text{E}_{{\bf{i}}_y}^{\text{field}}=\left(N_y - {\bf{i}}_y\right)\times\left(\text{\texttt{ELECTRIC\_FIELD}}\right)\times\left(\text{\texttt{LATTICE}}\right)$
-
 **Charge Distribution**
 
-Given the user-defined grid dimensions, set using the DIMENSIONS flag, and the charge densities, set by the HOLE_DENSITY and/or ELEC_DENSITY flags, the number of charged particles, $N_{\text{h}}$ and/or $N_{\text{e}}$, is determined. Once the site energy distribution is completed, the charge particle distribution is conducted using the scheme outlined by van der Holst.
+Given the user-defined grid dimensions, set using the `DIMENSIONS` flag, and the charge densities, set by the `HOLE_DENSITY` and/or `ELEC_DENSITY` flags, the number of charged particles, $N_{\text{h}}$ and/or $N_{\text{e}}$, is determined. Once the site energy distribution is initialized, we distribute the charges according to a Fermi-Dirac distribution,
 
-Firstly, every site is given an occupation probability using the Fermi-Dirac distribution,
+$p_i^{-1}=1+e^{\left(E_i-E_F\right)/k_BT}$
 
-$p_i=\left(1+e^{\left(E^{\text{site}}_{\bf{i}}-E_{\text{F}}\right)/k_BT}\right)^{-1}$
+where the Fermi energy, $E_F$, is set using the `FERMI_ENERGY` flag and the temperature is set using the `TEMPERATURE` flag. The cumulative sum is calculated,
 
-where the Fermi energy, $E_{\text{F}}$, is set using the FERMI_ENERGY flag and the temperature is set using the TEMPERATURE flag. The normalized cumulative sum is calculated,
+$s_{i}=s_{i-1}+p_{i}, \quad s_{1}=p_{1}$
 
-$s_j'=\sum_j{p_i},\quad s_j=\frac{s_j'}{s_N},$
-
-where N is the total number of grid points. 
-
-To select a site, a random number uniformly distributed between zero and one, $\eta$, is chosen. The site number, $j$, is given when the inequality is satisfied,
+To select an event, a random number, $\eta$, uniformly distributed between zero and $s_{N}$ is chosen, where $N$ is the number of grid points. The site number, $j$, is given when the inequality is satisfied,
 
 $s_{j-1} < \eta < s_j.$
 
-A charge particle is placed on site $j$ and $p_j$ is set to zero. The normalized cumulative sum is recalculated and the procedure is repeated until all charged particles are distributed.
+A charge particle is placed on site $j$ and $p_j$ is set to zero. The cumulative sum is recalculated and the procedure is repeated until all charged particles are distributed.
 
 **Calculation of Event Options**
 
-For a given configuration, each charged particle is able to hop to a site within a given radius ($\sqrt{3}\times$LATTICE) of its origin site. In the case that only one type of charge particle is considered (where the CALC_TYPE flag is set to either HOLE or ELEC), only charge transport can occur. If both charge types are considered, (where the CALC_TYPE flag is set to FULL), two options are available.
+For a given configuration, each charged particle is able to hop to a site within a given radius ($\sqrt{3}\times$`LATTICE`) of its origin site. In the case that only one type of charge particle is considered (where the `CALC_TYPE` flag is set to either `HOLE` or `ELEC`), only charge transport can occur. If both charge types are considered, (where the `CALC_TYPE` flag is set to `FULL`), two options are available.
 
  --- If the destination site is unoccupied, charge transport can occur.
  --- If the destination site is occupied by a particle of the opposite charge, exciton generation can occur.
 
-For a hopping event, from site $i$ to site $j$, there is an associated change in energy for the system, $\Delta E$. Given this change in energy, the hopping rates are calculated using either the Miller-Abrahams or the Marcus rate equations (controlled by the CHARGE_RATE flag). 
+For a hopping event of either type, from site $i$ to site $j$, there is an associated change in energy for the system, $\Delta E_{ij}$. The value of this energy change is discussed in more detail below. Given this change in energy, the hopping rates are calculated using either the Miller-Abrahams or the Marcus rate equations (controlled by the `CHARGE_RATE` flag). 
 
-The Miller-Abrahams rate equation is given,
+If the change in energy is positive, the Miller-Abrahams rate equation is given,
 
-$k_{\bf{ij}}=\omega_{0}e^{-2\gamma\left|R_{\bf{ij}}/L\right|}\times
- \begin{cases}
-  e^{-\Delta E_{\bf{ij}}/k_BT}&\Delta E_{\bf{ij}}>0\\
-  1&\Delta E_{\bf{ij}}\leq0
- \end{cases}$,
+$k_{ij}=\omega_{0}e^{-2\gamma\left|R_{ij}\right|}\times e^{-\Delta E_{ij}/k_BT}$,
 
-where T is the temperature (controlled by the TEMPERATURE flag), $R_{\bf{ij}}$ is the distance between sites ${\bf{i}}$ and ${\bf{j}}$, $L$ is the lattice constant (controlled by the LATTICE flag) and  $\omega_{0}$ is the hopping attempt frequency (controlled by the HOLE_HOP and ELEC_HOP flags).
+where T is the temperature (controlled by the `TEMPERATURE` flag), $\gamma$ is the inverse localization length (controlled by the `LOCAL` flag), and  $\omega_{0}$ is the hopping attempt frequency (controlled by the `HOLE_HOP` and `ELEC_HOP` flags). If the change in energy is negative, the rate is $k_{ij}=1$
 
-The Marcus rate is given,
+Regardless of the sign of the energy change, the Marcus rate is given,
 
-$k_{\bf{ij}}=\omega_{0}e^{-2\gamma\left|R_{\bf{ij}}/L\right|}\times
+$k_{\bf{ij}}=\omega_{0}e^{-2\gamma\left|R_{ij}\right|}\times
  e^{-\left(\lambda+\Delta E\right)^2/4\lambda k_BT},$
 
-where $\lambda$ is the reorganization energy (controlled by the REORGANIZATION flag), T is the temperature (controlled by the TEMPERATURE flag), $R_{\bf{ij}}$ is the distance between sites ${\bf{i}}$ and ${\bf{j}}$, $L$ is the lattice constant (controlled by the LATTICE flag) and  $\omega_{0}$ is the hopping attempt frequency (controlled by the HOLE_HOP and ELEC_HOP flags).
+where $\lambda$ is the reorganization energy (controlled by the `REORGANIZATION` flag).
+
+**Electric Field**
+
+The electric field, controlled with the `ELECTRIC_FIELD` flag, is applied step-wise in the $y$-direction by,
+
+$E_i^{fld}=\left(N_y - {\bf{i}}_y\right)\times\left(\text{\texttt{ELECTRIC\_FIELD}}\right)\times\left(\text{\texttt{LATTICE}}\right)$
 
 **Charge Transport**
  Charge transport occurs when the destination site for a hopping event involving either an electron or a hole in unoccupied. In this case, the change in energy for the system is given by,
