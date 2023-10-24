@@ -111,7 +111,7 @@ Holes and/or electrons are distributed onto a grid of points, each with an assoc
 
 $s_{i}=s_{i-1}+k_{i}, \quad s_{1}=k_{1}$
 
-To select an event, a random number uniformly distributed between zero and $s_{N}$, $\eta$, is chosen, where $N$ is the number of possible hopping events. The event number, $j$, is given when the inequality is satisfied,
+To select an event, a random number, $\eta$, uniformly distributed between zero and $s_{N}$ is chosen, where $N$ is the number of possible hopping events. The event number, $j$, is given when the inequality is satisfied,
 
 $s_{j-1} < \eta < s_{j}.$
 
@@ -119,31 +119,25 @@ Once an event is chosen, the system is updated accordingly and the system time i
 
 $\Delta t=-\frac{\ln{\zeta}}{s_N}.$
 
-This procedure is repeated until the number of requested steps is reached. 
-
-The time elapsed after each step, $t_{\text{step}}$, is determined by the sum of all calculated rates, $k_{\text{sum}}$, and a number chosen randomly from a uniform distribution between 0 and 1, $\zeta$,
-
-$t_{\text{step}}=-\frac{\ln{\zeta}}{k_{\text{sum}}}.$
-
-The total elapsed time at any given step, $t_{\text{tot}}$, is given by the cumulative sum of all the time steps up to that point. 
+This procedure is repeated until the number of requested steps is reached. The total elapsed time at any given step, $t_{\text{tot}}$, is given by the cumulative sum of all the time steps up to that point. 
 
 **Site Energy Initialization**
 
-Firstly, we specify a grid - which is a 3-dimensional array of evenly spaced points on a cubic lattice. The dimensions may be set with the DIMENSIONS flag and the lattice spacing set with the LATTICE flag. 
+Firstly, we specify a grid - which is a 3-dimensional array of evenly spaced points on a cubic lattice. The dimensions may be set with the `DIMENSIONS` flag and the lattice spacing set with the `LATTICE` flag. 
 
-CharTED-KMC supports several energy levels per site, depending on whether holes, electrons or both a being considered (declared with the CALC_TYPE flag) and whether additional higher-lying levels are being considered (declared with the HOMO+*n*_ENERGY and LUMO+*n*_ENERGY flags).  Each grid point is given the relevant HOMO and/or LUMO energies, which can be set using the HOMO_ENERGY and LUMO_ENERGY flags respectively. 
+CharTED-KMC supports several energy levels per site, depending on whether holes, electrons or both a being considered (declared with the `CALC_TYPE` flag) and whether additional higher-lying levels are being considered (declared with the `HOMO+*n*_ENERGY` and `LUMO+*n*_ENERGY` flags).  Each grid point is given the relevant HOMO and/or LUMO energies, which can be set using the `HOMO_ENERGY` and `LUMO_ENERGY` flags respectively. 
 
-Additional, uncorrelated disorder, correlated disorder and an electric field are added to the site,
+Additionally, uncorrelated disorder, correlated disorder and an electric field are added to the site,
 
-$E^{\text{site}}_{\bf{i}}=E_{\text{HOMO}/\text{LUMO}}+\text{E}_{\bf{i}}^{\text{unc}}+\text{E}_{\bf{i}}^{\text{corr}}+\text{E}_{\bf{i}}^{\text{field}}$
+$E_i=E_{i}^{lev}+E_i^{unc}+E_i^{cor}+E_i^{fld}$
 
 **Disorder**
 
-The sites are then given additional energy terms associated with three types of disorder: spatially uncorrelated disorder, correlated disorder and antiferromagnetic disorder. 
+The sites are then given additional energy terms associated with two types of disorder: spatially uncorrelated and correlated disorder. 
 
-*Uncorrelated Disorder* is added to every site with a noise width of $\sigma_{\text{unc}}$ (set with the UNCORRELATED_DISORDER flag). To include spatially uncorrelated disorder, the energies $\text{E}_{\textbf{i}}^{\text{unc}}$ are randomly drawn from a Gaussian density of states (DOS)
+*Uncorrelated Disorder* is added to every site with a noise width of $\sigma_{\text{unc}}$ (set with the `UNCORRELATED_DISORDER` flag). To include spatially uncorrelated disorder, the energies $E_i^{unc}$ are randomly drawn from a Gaussian density of states (DOS)
 
-$g\!\left(\varepsilon\right)=\frac{1}{\sqrt{2\pi}}\frac{1}{\sigma_{\text{unc}}}e^{-\varepsilon/2\sigma_{\text{unc}}^2}$
+$g\left(\varepsilon\right)=\frac{1}{\sqrt{2\pi}}\frac{1}{\sigma_{unc}}e^{-\varepsilon/2\sigma_{unc}^2}$
 
 Here the Ziggurat method for generating random variables is implemented as described by Marsaglia and Tsang. 
 
@@ -151,15 +145,15 @@ This disorder is generated separately for each level on the site.
 
 *Correlated Disorder* at grid point $i$ corresponds to the electrostatic energy resulting from the interaction of its permanent dipole, $\bf{d}_i$ with the permanent dipoles at the other grid points. The resulting energy is given by,
 
-$E_{\bf{i}}^{\text{corr}}=-\frac{e}{\epsilon_0\epsilon_r}\sum_{j\neq i}\frac{\bf{d}_j\cdot\bf{R}_{ij}}{\left|\bf{R}_{ij}\right|^3}$
+$E_i^{cor}=-\frac{1}{\epsilon_r} \sum_{j\neq i}\frac{d_j\cdot R_{ij}}{|R_{ij}|^3}$
 
-where $\bf{R}_{ij}$ is the spacial vector between site $i$ and site $j$. For efficiency, only neighbouring sites are considered. The number of neighbouring layers is controlled with the CORRELATED_NEIGHBORS flag. 
+where $R_{ij}$ is the spacial vector between site $i$ and site $j$. For efficiency, only neighbouring sites are considered. The number of neighbouring layers is controlled with the `CORRELATED_NEIGHBORS` flag, which should be viewed as a convergence parameter. 
 
-The dipole vectors on each site are assumed to have the same magnitude and are arranged in one of two ways depending on user input. This choice is controlled by the CORRELATED_TYPE flag, which can either be set to RANDOM, ORDERED or MIXED. In all cases, the magnitude of the dipole moment is given by the DIPOLE_MOMENT flag. 
+The dipole vectors on each site are assumed to have the same magnitude and are arranged in one of two ways depending on user input. This choice is controlled by the `CORRELATED_TYPE` flag, which can either be set to `RANDOM`, `ORDERED` or `MIXED`. In all cases, the magnitude of the dipole moment is given by the `DIPOLE_MOMENT` flag. 
 
-If RANDOM is chosen, unit vectors are distributed randomly on each site. If ORDERED is chosen, unit vectors are added to each site with an antiferromagnetic symmetry, where the reference direction is drawn randomly. In MIXED is chosen, disorder from the ordered initial distribution is added using the ORDER_PARAMETER flag, which can be given a value between zero and one.
+If `RANDOM` is chosen, unit vectors are distributed randomly on each site. If `ORDERED` is chosen, unit vectors are added to each site with an antiferromagnetic symmetry, where the reference direction is drawn randomly. In `MIXED` is chosen, disorder from the ordered initial distribution is added using the `ORDER_PARAMETER` flag, which can be given a value between zero and one.
 
-This disorder in generated once per site and applied to all levels equally. 
+This disorder is generated once per site and applied to all levels equally. 
 
 **Electric Field**
 
